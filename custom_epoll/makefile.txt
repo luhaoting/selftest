@@ -1,0 +1,26 @@
+TARGET_PATH = ../
+BUILD_PATH = ../build
+TARGET = $(TARGET_PATH)/PROJECT
+
+OBJS = $(patsubst %.cpp, $(BUILD_PATH)/%.o, $(wildcard *.cpp))
+
+DEPS = $(OBJS:$(BUILD_PATH)/%.o=$(BUILD_PATH)/%.d)
+
+all:$(TARGET)
+
+-include $(DEPS)
+$(DEPS):$(BUILD_PATH)/%.d : %.cpp
+        @if [ ! -d "$(dir $@)" ]; then mkdir -pv $(dir $@); fi
+        g++ -M -g $< > $@.$$$$; sed 's,\($*\)\.o[ :]*, $(BUILD_PATH)\1.o $@ : ,g' < $@.$$$$ > $@;  rm -f $@.$$$$
+
+$(TARGET):$(OBJS)
+        @rm -rf $(TARGET)
+        g++ $(OBJS) -o $@
+
+$(OBJS):$(BUILD_PATH)/%.o:%.cpp
+        g++ -c -g $< -o $@
+
+clean:
+        @rm -rf $(BUILD_PATH) $(TARGET) core *~
+
+.PHONY: all clean
